@@ -75,7 +75,7 @@ func NewHandlerCustom(setting func(config *Config)) (*MyHandler, error) {
 	window := make([]*Window, expandSize, expandSize)
 	for i := range conf.WindowTimeSize {
 		qsize := conf.WindowTimeSize[i] / conf.SubWindowTimeSize[i]
-		win := NewWindow(qsize, conf.TopKeepSize[i+1], conf.SubWindowTimeSize[i])
+		win := NewWindow(qsize, conf.TopKeepSize[i+1], conf.WindowTimeSize[i])
 		window[i] = win
 	}
 	handler.window = window
@@ -88,10 +88,8 @@ func (h *MyHandler) Consume(topic string, timestamp time.Time) {
 		synopsis := sWin.BuildSynopsis()
 		h.refresh(synopsis, 0)
 		sWin.Clear()
-	} else {
-		sWin.Push(topic, timestamp)
 	}
-
+	sWin.Push(topic, timestamp)
 }
 
 /**
@@ -109,7 +107,10 @@ func (h *MyHandler) refresh(synopsis pkg.Synopsis, position int) {
 		}
 		current.Sliding(synopsis)
 	} else {
-		if current.IsFull(synopsis.Start) {
+		if current.IsOutbound(synopsis.Start) {
+			current.Clear()
+			current.Sliding(synopsis)
+		} else if current.IsFull(synopsis.Start) {
 			syn := current.BuildSynopsis()
 			current.Clear()
 			current.Sliding(synopsis)
@@ -152,7 +153,7 @@ func (h *MyHandler) Print() {
 			c,
 			h.config.SubWindowTimeSize[i],
 			h.window[i].queue.Front().(pkg.Synopsis).Start.Format(TimeStampLayout),
-			h.window[i].queue.Rear().(pkg.Synopsis).Start.Format(TimeStampLayout),
+			h.window[i].queue.Rear().(pkg.Synopsis).End.Format(TimeStampLayout),
 			h.window[i].queue.Size())
 
 		h.window[i].minheap.Print()

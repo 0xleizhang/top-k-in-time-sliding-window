@@ -63,7 +63,7 @@ func (w *Window) Sliding(syn pkg.Synopsis) {
 // 查找word，更新加 重新排序
 func (w *Window) in(word pkg.Word) {
 	p := w.minheap.Search(word)
-	if p > 0 {
+	if p >= 0 {
 		(*w.minheap)[p].Count += word.Count
 		heap.Fix(w.minheap, p)
 	} else {
@@ -92,6 +92,7 @@ func (w *Window) BuildSynopsis() pkg.Synopsis {
 	s := pkg.Synopsis{}
 	front := w.queue.Front()
 	s.Start = front.(pkg.Synopsis).Start
+	s.End = w.queue.Rear().(pkg.Synopsis).End
 	s.Top = *(w.minheap)
 	return s
 }

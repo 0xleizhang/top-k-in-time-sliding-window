@@ -62,6 +62,7 @@ func (w *SketchWindow) IsFull(timestamp time.Time) bool {
 func (w *SketchWindow) BuildSynopsis() pkg.Synopsis {
 	s := pkg.Synopsis{}
 	s.Start = w.start
+	s.End = w.end
 	h := w.minHeap
 	s.Top = *h
 	return s
